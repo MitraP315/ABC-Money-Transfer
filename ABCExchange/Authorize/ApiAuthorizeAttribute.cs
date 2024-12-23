@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
+using ABCExchange.Controllers;
 
 namespace ABCExchange.Authorize
 {
@@ -34,8 +35,8 @@ namespace ABCExchange.Authorize
             }
             var authenticationService = context.HttpContext.RequestServices.GetService<IAuthenticationService>();
             var result = await authenticationService.AuthenticateAsync(context.HttpContext, JwtBearerDefaults.AuthenticationScheme);
-            return;
-          /*  int userId = context.HttpContext.User.Identity.GetIdentityUserId();
+        
+           int userId = context.HttpContext.User.Identity.GetIdentityUserId();
             if (userId == 0)
             {
                 context.Result = new JsonResult(new { Code = 401, Message = "Session Expired Please login again" });
@@ -45,7 +46,7 @@ namespace ABCExchange.Authorize
             {
                 context.Result = new JsonResult(new { Code = 401, Message = "Unauthorized Request" });
                 return;
-            }*/
+            }
         }
     }
 }

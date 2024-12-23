@@ -263,5 +263,9 @@ namespace ABCExchange.Controllers
             return new ResponseModel(500, ex.Message, data);
 
         }
+        protected string GetModelErrors(ModelStateDictionary modelState)
+        {
+            return string.Join("; ", modelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage));
+        }
     }
 }

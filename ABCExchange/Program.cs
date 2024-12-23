@@ -1,17 +1,23 @@
+using ABCExchange.Models;
+using ABCExchange.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers()
                 .AddJsonOptions(opt => opt.JsonSerializerOptions.PropertyNamingPolicy = null);
+builder.Services.AddSingleton<TokenService>();
+builder.Services.AddScoped<DataSeeder>();
 
 // Configure Entity Framework with SQL Server and suppress specific warnings
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -20,30 +26,48 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
                warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 // Configure Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+builder.Services.AddIdentity<AppUser, AppRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
 
 // Add support for getting the HttpContext
 builder.Services.AddHttpContextAccessor();
 
 // Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(opts =>
+    .AddJwtBearer(options =>
     {
-        opts.Authority = "https://localhost:44335/";
-        opts.Audience = "APIViewer";
-        opts.RequireHttpsMetadata = true;
-        opts.IncludeErrorDetails = true;
+        // Get JWT settings from configuration
+        var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+        var secretKey = jwtSettings["SecretKey"];
 
-        opts.Events = new JwtBearerEvents
+        // Set token validation parameters
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            OnMessageReceived = ctx =>
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true, // Ensure the token has not expired
+            ValidIssuer = "ABSExchange", // Match the issuer in TokenService
+            ValidAudience = "ABSExchange", // Match the audience in TokenService
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)) // Use the same secret key
+        };
+
+        // Optional: Customize token handling events
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
             {
-                if (ctx.Request.Query.ContainsKey("token"))
+                if (context.Request.Query.ContainsKey("token"))
                 {
-                    ctx.Token = ctx.Request.Query["token"];
+                    context.Token = context.Request.Query["token"];
                 }
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                context.Response.Headers.Add("Authentication-Failed", "true");
                 return Task.CompletedTask;
             }
         };
@@ -102,6 +126,14 @@ builder.Services.AddSwaggerGen(c =>
 // Build the application
 var app = builder.Build();
 
+// Ensure that DataSeeder runs during app startup
+using (var scope = app.Services.CreateScope())
+{
+    var serviceProvider = scope.ServiceProvider;
+    var dataSeeder = serviceProvider.GetRequiredService<DataSeeder>();
+    await dataSeeder.SeedSuperAdminAsync(serviceProvider);
+}
+
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -110,11 +142,13 @@ if (app.Environment.IsDevelopment())
     {
         c.SwaggerEndpoint("/swagger/access-control/swagger.json", "Access Control");
 
+        /*c.RoutePrefix = string.Empty; // Set Swagger UI to be at the root of the app
+
+        c.InjectJavascript("/swagger/custom-swagger.js");*/
     });
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 

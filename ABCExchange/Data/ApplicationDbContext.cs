@@ -15,14 +15,15 @@ namespace ABCExchange.Models
             base.OnModelCreating(builder);
 
             // Change the table names for Identity tables
-            builder.Entity<AppUser>().ToTable("Users");
-            builder.Entity<AppRole>().ToTable("Roles");
+            builder.Entity<AppUser>().ToTable("IdentityUser");
+            builder.Entity<AppRole>().ToTable("IdentityRoles");
             builder.Entity<AppUserRole>().ToTable("UserRoles");
             builder.Entity<AppUserClaim>().ToTable("UserClaims");
             builder.Entity<AppUserLogin>().ToTable("UserLogins");
             builder.Entity<AppRoleClaim>().ToTable("RoleClaims");
             builder.Entity<AppUserToken>().ToTable("UserTokens");
             builder.Entity<SeedStatus>().ToTable("SeedStatus");
+            builder.Entity<Transaction>().ToTable("Transaction");
 
             // Optional: Add any other custom configurations for entities
         }

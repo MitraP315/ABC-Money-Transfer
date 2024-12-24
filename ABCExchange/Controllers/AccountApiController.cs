@@ -45,7 +45,7 @@ namespace ABCExchange.Controllers
                     var result = await _userManager.CheckPasswordAsync(user, model.Password);
                     if (!result)
                     {
-                            return new ResponseModel(400, "Invalid username or password !!!", null);
+                            return new ResponseModel(400, "Invalid username or password !!!");
                     }
                     if (user != null && result == true)
                     {
@@ -62,14 +62,14 @@ namespace ABCExchange.Controllers
                             HttpOnly = true,
                             Secure = true, // Use 'Secure' flag for production to enforce HTTPS
                             SameSite = SameSiteMode.Strict,
-                            Expires = DateTime.Now.AddMinutes(7) // Set the cookie expiration
+                            Expires = DateTime.Now.AddDays(7) // Set the cookie expiration
                         });
 
                         return new ResponseModel(200, "Loged in Successfully", new { AccessToken = accessToken });
                     }
                     else
                     {
-                        return new ResponseModel(400, "Invalid username or password !!!", null);
+                        return new ResponseModel(400, "Invalid username or password !!!");
                     }
                 }
                 else
@@ -97,7 +97,7 @@ namespace ABCExchange.Controllers
             var existingUser = await _userManager.FindByEmailAsync(model.Email);
             if (existingUser != null)
             {
-                return new ResponseModel(400, "User already exists !!!", null);
+                return new ResponseModel(400, "User already exists !!!");
             }
 
             // Ensure the SuperAdmin role exists
@@ -108,13 +108,15 @@ namespace ABCExchange.Controllers
                 if (!roleCreationResult.Succeeded)
                 {
                     // Handle role creation failure (e.g., log or throw an exception)
-                    return new ResponseModel(400,$"Failed to create role: {"User"}",null);
+                    return new ResponseModel(400,$"Failed to create role: {"User"}");
                 }
             }
 
             var user = new AppUser
             {
-                FullName = model.FullName,
+                FirstName =model.FirstName,
+                MiddleName = model.MiddleName,
+                LastName= model.LastName,
                 UserName = model.Email,
                 Email = model.Email,
                 PhoneNumber = model.PhoneNumber,
@@ -128,13 +130,13 @@ namespace ABCExchange.Controllers
                 if (!roleAssignmentResult.Succeeded)
                 {
                     // Handle role assignment failure
-                    return new ResponseModel(400, "Failed to assign  role to the user.", null);
+                    return new ResponseModel(400, "Failed to assign  role to the user.");
                 }
 
                 return new ResponseModel(200, "User Registered Successfully !", result);
             }
 
-            return new ResponseModel(400, "Unable to create User !!!", null);
+            return new ResponseModel(400, "Unable to create User !!!");
           
         }
     }

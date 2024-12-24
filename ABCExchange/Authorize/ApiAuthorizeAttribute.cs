@@ -37,7 +37,7 @@ namespace ABCExchange.Authorize
             var result = await authenticationService.AuthenticateAsync(context.HttpContext, JwtBearerDefaults.AuthenticationScheme);
         
            int userId = context.HttpContext.User.Identity.GetIdentityUserId();
-            if (userId == 0)
+            if (userId==0)
             {
                 context.Result = new JsonResult(new { Code = 401, Message = "Session Expired Please login again" });
                 return;

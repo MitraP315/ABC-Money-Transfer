@@ -140,17 +140,18 @@ namespace ABCExchange.Controllers
             this.v = v;
             this.error = error;
         }
-
+        public int Code { get; set; }
+        public string Message { get; set; }
+        public object Data { get; set; }
         public ResponseModel(int code, string msg, object data)
         {
             Code = code;
             Message = msg;
             Data = data;
         }
-        public int Code { get; set; }
-        public string Message { get; set; }
-        public object Data { get; set; }
+       
     }
+   
 
     [Produces("application/json")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]

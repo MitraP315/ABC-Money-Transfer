@@ -1,3 +1,4 @@
+using ABCExchange;
 using ABCExchange.Models;
 using ABCExchange.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -33,6 +35,10 @@ builder.Services.AddIdentity<AppUser, AppRole>()
 
 // Add support for getting the HttpContext
 builder.Services.AddHttpContextAccessor();
+
+var configuration = builder.Configuration;
+var serviceRegistrar = new ServiceRegistrar();
+serviceRegistrar.Register(builder.Services, configuration);
 
 // Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -67,7 +73,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             },
             OnAuthenticationFailed = context =>
             {
-                context.Response.Headers.Add("Authentication-Failed", "true");
+                context.Response.Headers.Append("Authentication-Failed", "true");
                 return Task.CompletedTask;
             }
         };
@@ -86,7 +92,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         if (!apiDesc.TryGetMethodInfo(out MethodInfo methodInfo)) return false;
 
-        string groupName = methodInfo.DeclaringType?
+        string? groupName = methodInfo.DeclaringType?
             .GetCustomAttributes(true)
             .OfType<ApiExplorerSettingsAttribute>()
             .Select(attr => attr.GroupName)

@@ -14,10 +14,15 @@ namespace ABCExchange.ViewModel
     }
     public class RegisterInputVM
     {
+        [Required(ErrorMessage = "First name is required.")]
+        [StringLength(100, ErrorMessage = "Full name cannot exceed 100 characters.")]
+        public string FirstName { get; set; }
+        public string MiddleName { get; set; }
         [Required(ErrorMessage = "Full name is required.")]
         [StringLength(100, ErrorMessage = "Full name cannot exceed 100 characters.")]
-        public string FullName { get; set; }
-
+        public string LastName{ get; set; }
+        public string Address { get; set; }
+        public string Country { get; set; }
         [Required(ErrorMessage = "Email is required.")]
         [EmailAddress(ErrorMessage = "Invalid email address.")]
         [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", ErrorMessage = "Email must contain the '@' symbol and a valid domain.")]

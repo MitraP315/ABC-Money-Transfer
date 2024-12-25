@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace ABCExchange.Models
 {
@@ -23,7 +24,7 @@ namespace ABCExchange.Models
             builder.Entity<AppRoleClaim>().ToTable("RoleClaims");
             builder.Entity<AppUserToken>().ToTable("UserTokens");
             builder.Entity<SeedStatus>().ToTable("SeedStatus");
-            builder.Entity<Transaction>().ToTable("Transaction");
+            builder.Entity<Transaction>().ToTable("Transaction").Property(t => t.TransactionId).ValueGeneratedOnAdd();
 
             // Optional: Add any other custom configurations for entities
         }

@@ -14,41 +14,30 @@ using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container
 builder.Services.AddControllers()
                 .AddJsonOptions(opt => opt.JsonSerializerOptions.PropertyNamingPolicy = null);
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<DataSeeder>();
-
-// Configure Entity Framework with SQL Server and suppress specific warnings
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
            .ConfigureWarnings(warnings =>
                warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
-// Configure Identity
 builder.Services.AddIdentity<AppUser, AppRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-
-// Add support for getting the HttpContext
 builder.Services.AddHttpContextAccessor();
 
 var configuration = builder.Configuration;
 var serviceRegistrar = new ServiceRegistrar();
 serviceRegistrar.Register(builder.Services, configuration);
-
-// Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        // Get JWT settings from configuration
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");
         var secretKey = jwtSettings["SecretKey"];
 
-        // Set token validation parameters
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -128,8 +117,6 @@ builder.Services.AddSwaggerGen(c =>
     };
     c.AddSecurityRequirement(securityRequirement);
 });
-
-// Build the application
 var app = builder.Build();
 
 // Ensure that DataSeeder runs during app startup
@@ -139,18 +126,12 @@ using (var scope = app.Services.CreateScope())
     var dataSeeder = serviceProvider.GetRequiredService<DataSeeder>();
     await dataSeeder.SeedSuperAdminAsync(serviceProvider);
 }
-
-// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/access-control/swagger.json", "Access Control");
-
-        /*c.RoutePrefix = string.Empty; // Set Swagger UI to be at the root of the app
-
-        c.InjectJavascript("/swagger/custom-swagger.js");*/
     });
 }
 

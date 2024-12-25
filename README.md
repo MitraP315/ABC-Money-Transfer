@@ -75,3 +75,6 @@ Your application will now be running on the IIS server.
 ## Conclusion
 
 You have successfully set up your .NET Core 8 application with authentication and Entity Framework using SQL Server.
+
+##//ToDos
+fronend assmbly using react or blazor
